@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server';
 import { fetch, ProxyAgent } from 'undici';
 
+interface GroqResponse {
+  choices?: Array<{
+    message?: {
+      content?: string;
+    };
+  }>;
+}
+
 export async function POST(request: Request) {
   try {
     const { summary } = await request.json();
@@ -36,7 +44,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `API error: ${response.status} - ${error}` }, { status: response.status });
     }
 
-    const data = await response.json();
+    const data = await response.json() as GroqResponse;
     return NextResponse.json({ result: data.choices?.[0]?.message?.content || '' });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
