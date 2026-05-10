@@ -19,7 +19,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing API key' }, { status: 500 });
     }
 
-    const dispatcher = new ProxyAgent('http://127.0.0.1:7892');
+    // 本地开发环境用代理，Vercel不用代理
+    const dispatchOptions: { dispatcher?: ProxyAgent } = {};
+    if (process.env.NODE_ENV === 'development') {
+      dispatchOptions.dispatcher = new ProxyAgent('http://127.0.0.1:7892');
+    }
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -36,7 +40,7 @@ export async function POST(request: Request) {
         temperature: 0.7,
         max_tokens: 1024,
       }),
-      dispatcher
+      ...dispatchOptions
     });
 
     if (!response.ok) {
